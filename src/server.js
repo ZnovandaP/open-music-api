@@ -1,5 +1,8 @@
 const Hapi = require('@hapi/hapi');
+const Jwt = require('@hapi/jwt');
+
 const ClientError = require('./exceptions/ClientError');
+
 // songs api
 const songs = require('./api/songs');
 const SongsService = require('./services/postgres/SongsService');
@@ -9,11 +12,26 @@ const albums = require('./api/albums');
 const AlbumsService = require('./services/postgres/AlbumsService');
 const AlbumsValidator = require('./validator/albums');
 
+// users api
+const UsersService = require('./services/postgres/UsersService');
+const usersValidator = require('./validator/users');
+const users = require('./api/users');
+
+// users api
+const authentications = require('./api/authentications');
+const TokenManager = require('./tokenize/TokenManager');
+const AuthenticationsService = require('./services/postgres/AuthenticationsService');
+const AuthenticationsValidator = require('./validator/authentications');
+
 require('dotenv').config();
 
 const init = async () => {
   const songsService = new SongsService();
   const albumsService = new AlbumsService();
+  const usersService = new UsersService();
+  const authenticationsService = new AuthenticationsService();
+
+  const tokenManager = new TokenManager();
 
   const server = Hapi.server({
     port: process.env.PORT,
@@ -24,6 +42,12 @@ const init = async () => {
       },
     },
   });
+
+  await server.register([
+    {
+      plugin: Jwt,
+    },
+  ]);
 
   await server.register([
     {
@@ -40,7 +64,37 @@ const init = async () => {
         validator: AlbumsValidator,
       },
     },
+    {
+      plugin: users,
+      options: {
+        service: usersService,
+        validator: usersValidator,
+      },
+    },
+    {
+      plugin: authentications,
+      options: {
+        usersService,
+        authenticationsService,
+        tokenManager,
+        validator: AuthenticationsValidator,
+      },
+    },
   ]);
+
+  server.auth.strategy('openmusic_jwt', 'jwt', {
+    keys: process.env.ACCESS_TOKEN_KEY,
+    verify: {
+      aud: false,
+      iss: false,
+      sub: false,
+      maxAgeSec: process.env.ACCESS_TOKEN_AGE,
+    },
+    validate: (artifacts) => ({
+      isValid: true,
+      id: artifacts.decode.payload.id,
+    }),
+  });
 
   server.ext('onPreResponse', (request, h) => {
     const { response } = request;
