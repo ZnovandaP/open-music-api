@@ -40,7 +40,7 @@ class AuthenticationsHandler {
     this._validator.validatePutAuthenticationPayload(request.payload);
     const { refreshToken } = request.payload;
 
-    console.log(refreshToken);
+    // console.log(refreshToken);
 
     const { userId } = this._tokenManager.verifyRefreshToken(refreshToken);
     await this._authenticationsService.verifyRefreshToken(refreshToken);
