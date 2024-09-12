@@ -23,6 +23,11 @@ const TokenManager = require('./tokenize/TokenManager');
 const AuthenticationsService = require('./services/postgres/AuthenticationsService');
 const AuthenticationsValidator = require('./validator/authentications');
 
+const playlists = require('./api/playlists');
+const PlaylistsService = require('./services/postgres/PlaylistsService');
+const PlaylistsValidator = require('./validator/playlists');
+const PlaylistSongsService = require('./services/postgres/PlaylistSongsService');
+
 require('dotenv').config();
 
 const init = async () => {
@@ -30,6 +35,8 @@ const init = async () => {
   const albumsService = new AlbumsService();
   const usersService = new UsersService();
   const authenticationsService = new AuthenticationsService();
+  const playlistsService = new PlaylistsService();
+  const playlistSongsService = new PlaylistSongsService(songsService, playlistsService);
 
   const tokenManager = new TokenManager();
 
@@ -48,6 +55,22 @@ const init = async () => {
       plugin: Jwt,
     },
   ]);
+
+  server.auth.strategy('openmusic_jwt', 'jwt', {
+    keys: process.env.ACCESS_TOKEN_KEY,
+    verify: {
+      aud: false,
+      iss: false,
+      sub: false,
+      maxAgeSec: process.env.ACCESS_TOKEN_AGE,
+    },
+    validate: (artifacts) => ({
+      isValid: true,
+      credentials: {
+        id: artifacts.decoded.payload.userId,
+      },
+    }),
+  });
 
   await server.register([
     {
@@ -80,21 +103,16 @@ const init = async () => {
         validator: AuthenticationsValidator,
       },
     },
-  ]);
-
-  server.auth.strategy('openmusic_jwt', 'jwt', {
-    keys: process.env.ACCESS_TOKEN_KEY,
-    verify: {
-      aud: false,
-      iss: false,
-      sub: false,
-      maxAgeSec: process.env.ACCESS_TOKEN_AGE,
+    {
+      plugin: playlists,
+      options: {
+        playlistSongsService,
+        playlistsService,
+        songsService,
+        validator: PlaylistsValidator,
+      },
     },
-    validate: (artifacts) => ({
-      isValid: true,
-      id: artifacts.decode.payload.id,
-    }),
-  });
+  ]);
 
   server.ext('onPreResponse', (request, h) => {
     const { response } = request;
