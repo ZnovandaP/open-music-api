@@ -36,6 +36,8 @@ class PlaylistsHandler {
   async getPlaylistsHandler(request, h) {
     const { id: ownerId } = request.auth.credentials;
 
+    console.log(ownerId);
+
     const playlists = await this._playlistsService.getPlaylistsByOwnerId(ownerId);
 
     return {
@@ -63,7 +65,7 @@ class PlaylistsHandler {
     const { songId } = request.payload;
     const { id: ownerId } = request.auth.credentials;
 
-    await this._playlistsService.verifyPlaylistOwner(playlistId, ownerId);
+    await this._playlistsService.verifyOwnerAccessPlaylist(playlistId, ownerId);
     //! playlist id is legit (exists) when method above is success to executed
 
     const { id: songIdExists } = await this._songsService.getSongById(songId);
@@ -92,7 +94,7 @@ class PlaylistsHandler {
     const { playlistId } = request.params;
     const { id: ownerId } = request.auth.credentials;
 
-    await this._playlistsService.verifyPlaylistOwner(playlistId, ownerId);
+    await this._playlistsService.verifyOwnerAccessPlaylist(playlistId, ownerId);
 
     const playlist = await this._playlistSongsService.getPlaylistSongs(playlistId);
 
@@ -111,7 +113,7 @@ class PlaylistsHandler {
     const { songId } = request.payload;
     const { id: ownerId } = request.auth.credentials;
 
-    await this._playlistsService.verifyPlaylistOwner(playlistId, ownerId);
+    await this._playlistsService.verifyOwnerAccessPlaylist(playlistId, ownerId);
 
     const { id: songIdExists } = await this._songsService.getSongById(songId);
 
