@@ -33,6 +33,11 @@ const PlaylistSongsService = require('./services/postgres/PlaylistSongsService')
 const playlistSongActivities = require('./api/playlistSongActivities');
 const PlaylistSongActivitiesService = require('./services/postgres/PlaylistSongActivitiesService');
 
+// playlist collaborators
+const playlistCollaborations = require('./api/playlistCollaborations');
+const PlaylistCollaborationsService = require('./services/postgres/playlistCollaborationsService');
+const PlaylistCollaborationsValidator = require('./validator/playlistCollaborations');
+
 require('dotenv').config();
 
 const init = async () => {
@@ -40,7 +45,8 @@ const init = async () => {
   const albumsService = new AlbumsService();
   const usersService = new UsersService();
   const authenticationsService = new AuthenticationsService();
-  const playlistsService = new PlaylistsService();
+  const playlistCollaborationsService = new PlaylistCollaborationsService();
+  const playlistsService = new PlaylistsService(playlistCollaborationsService);
   const playlistSongsService = new PlaylistSongsService(songsService, playlistsService);
   const playlistSongActivitiesService = new PlaylistSongActivitiesService();
 
@@ -124,6 +130,15 @@ const init = async () => {
       options: {
         playlistSongActivitiesService,
         playlistsService,
+      },
+    },
+    {
+      plugin: playlistCollaborations,
+      options: {
+        playlistsService,
+        playlistCollaborationsService,
+        usersService,
+        validator: PlaylistCollaborationsValidator,
       },
     },
   ]);
