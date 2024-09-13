@@ -3,11 +3,12 @@ const autoBind = require('auto-bind');
 
 class PlaylistsHandler {
   constructor({
-    playlistsService, playlistSongsService, songsService, validator,
+    playlistsService, playlistSongsService, songsService, playlistSongActivitiesService, validator,
   }) {
     this._playlistsService = playlistsService;
     this._playlistSongsService = playlistSongsService;
     this._songsService = songsService;
+    this._playlistSongActivitiesService = playlistSongActivitiesService;
     this._validator = validator;
 
     autoBind(this);
@@ -69,6 +70,14 @@ class PlaylistsHandler {
 
     await this._playlistSongsService.addSongToPlaylist(songIdExists, playlistId);
 
+    // add history activity
+    await this._playlistSongActivitiesService.addPlaylistSongActiviy({
+      playlistId,
+      songId: songIdExists,
+      userId: ownerId,
+      action: 'add',
+    });
+
     const response = h.response({
       status: 'success',
       message: 'Lagu berhasil ditambahkan ke playlist',
@@ -107,6 +116,14 @@ class PlaylistsHandler {
     const { id: songIdExists } = await this._songsService.getSongById(songId);
 
     await this._playlistSongsService.deleteSongFromPlaylist(songIdExists);
+
+    // add history activity
+    await this._playlistSongActivitiesService.addPlaylistSongActiviy({
+      playlistId,
+      songId: songIdExists,
+      userId: ownerId,
+      action: 'delete',
+    });
 
     return {
       status: 'success',
