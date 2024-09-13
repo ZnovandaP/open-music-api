@@ -17,16 +17,21 @@ const UsersService = require('./services/postgres/UsersService');
 const usersValidator = require('./validator/users');
 const users = require('./api/users');
 
-// users api
+// authentications api
 const authentications = require('./api/authentications');
 const TokenManager = require('./tokenize/TokenManager');
 const AuthenticationsService = require('./services/postgres/AuthenticationsService');
 const AuthenticationsValidator = require('./validator/authentications');
 
+// playlist api
 const playlists = require('./api/playlists');
 const PlaylistsService = require('./services/postgres/PlaylistsService');
 const PlaylistsValidator = require('./validator/playlists');
 const PlaylistSongsService = require('./services/postgres/PlaylistSongsService');
+
+// playlist song activities
+const playlistSongActivities = require('./api/playlistSongActivities');
+const PlaylistSongActivitiesService = require('./services/postgres/PlaylistSongActivitiesService');
 
 require('dotenv').config();
 
@@ -37,6 +42,7 @@ const init = async () => {
   const authenticationsService = new AuthenticationsService();
   const playlistsService = new PlaylistsService();
   const playlistSongsService = new PlaylistSongsService(songsService, playlistsService);
+  const playlistSongActivitiesService = new PlaylistSongActivitiesService();
 
   const tokenManager = new TokenManager();
 
@@ -109,7 +115,15 @@ const init = async () => {
         playlistSongsService,
         playlistsService,
         songsService,
+        playlistSongActivitiesService,
         validator: PlaylistsValidator,
+      },
+    },
+    {
+      plugin: playlistSongActivities,
+      options: {
+        playlistSongActivitiesService,
+        playlistsService,
       },
     },
   ]);
