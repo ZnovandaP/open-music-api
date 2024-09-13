@@ -36,9 +36,7 @@ class PlaylistsHandler {
   async getPlaylistsHandler(request, h) {
     const { id: ownerId } = request.auth.credentials;
 
-    console.log(ownerId);
-
-    const playlists = await this._playlistsService.getPlaylistsByOwnerId(ownerId);
+    const playlists = await this._playlistsService.getPlaylistById(ownerId);
 
     return {
       status: 'success',

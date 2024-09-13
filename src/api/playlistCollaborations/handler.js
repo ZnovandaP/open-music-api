@@ -19,8 +19,6 @@ class PlaylistCollaborationHandler {
     const { id: ownerId } = request.auth.credentials;
     const { playlistId, userId } = request.payload;
 
-    console.log(playlistId, userId);
-
     await this._playlistsService.verifyPlaylistOwner(playlistId, ownerId);
     await this._usersService.verifyUserIsExistById(userId);
 
