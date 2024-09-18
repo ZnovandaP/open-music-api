@@ -32,22 +32,22 @@ class AlbumsService {
   async getAlbumById(id) {
     const query = {
       text: `
-     SELECT 
-      albums.id, albums.name, albums.year,
-      COALESCE(
-        array_agg(
-            json_build_object(
-              'id', songs.id,
-              'title', songs.title,
-              'performer', songs.performer
-            )
-        ) FILTER (WHERE songs.album_id IS NOT NULL), 
-        ARRAY[]::json[]
-    ) AS songs
+      SELECT 
+        albums.id, albums.name, albums.year, albums.cover as "coverUrl",
+        COALESCE(
+          array_agg(
+              json_build_object(
+                'id', songs.id,
+                'title', songs.title,
+                'performer', songs.performer
+              )
+          ) FILTER (WHERE songs.album_id IS NOT NULL), 
+          ARRAY[]::json[]
+        ) AS songs
       FROM albums 
       LEFT JOIN songs ON songs.album_id = albums.id
       WHERE albums.id = $1
-      GROUP BY albums.id, albums.name, albums.year;
+      GROUP BY albums.id, albums.name, albums.year, albums.cover;
       `,
       values: [id],
     };
@@ -88,6 +88,19 @@ class AlbumsService {
 
     if (!result.rows.length) {
       throw new NotFoundError('Gagal memperbarui album. Id tidak ditemukan');
+    }
+  }
+
+  async updateCoverAlbum(id, cover) {
+    const query = {
+      text: 'UPDATE albums SET cover = $1 WHERE id = $2 RETURNING id',
+      values: [cover, id],
+    };
+
+    const result = await this._pool.query(query);
+
+    if (!result.rows.length) {
+      throw new NotFoundError('Gagal memperbarui cover album. Id tidak ditemukan');
     }
   }
 
