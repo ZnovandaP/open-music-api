@@ -8,7 +8,7 @@
     "start:dev": "nodemon ./src/server.js",
     "lint": "eslint ./src",
     "migrate": "node-pg-migrate",
-    "test:postman": "newman run ./postman/Open_Music_API_V2_Test.postman_collection.json --environment ./postman/OpenMusic_API_Test.postman_environment.json"
+    "test:postman": "newman run ./postman/Open_Music_API_V3_Test.postman_collection.json --environment ./postman/Open_Music_API_Test.postman_environment.json"
   },
   "keywords": [],
   "author": "Zidane Novanda Putra",
@@ -23,6 +23,7 @@
   "dependencies": {
     "@hapi/hapi": "^21.3.2",
     "@hapi/jwt": "^3.2.0",
+    "amqplib": "^0.10.4",
     "auto-bind": "^4.0.0",
     "bcrypt": "^5.1.1",
     "dotenv": "^16.4.5",

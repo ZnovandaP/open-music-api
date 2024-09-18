@@ -38,6 +38,11 @@ const playlistCollaborations = require('./api/playlistCollaborations');
 const PlaylistCollaborationsService = require('./services/postgres/playlistCollaborationsService');
 const PlaylistCollaborationsValidator = require('./validator/playlistCollaborations');
 
+// export playlist
+const _exports = require('./api/exports');
+const ProducerService = require('./services/rabbitmq/ProducerService');
+const ExportsValidator = require('./validator/exports');
+
 require('dotenv').config();
 
 const init = async () => {
@@ -139,6 +144,14 @@ const init = async () => {
         playlistCollaborationsService,
         usersService,
         validator: PlaylistCollaborationsValidator,
+      },
+    },
+    {
+      plugin: _exports,
+      options: {
+        playlistsService,
+        producerService: ProducerService,
+        validator: ExportsValidator,
       },
     },
   ]);
