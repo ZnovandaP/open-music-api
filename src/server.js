@@ -53,9 +53,12 @@ const UploadsValidator = require('./validator/uploads');
 const votesAlbum = require('./api/votesAlbum');
 const UserAlbumLikesService = require('./services/postgres/UserAlbumLikesService');
 
+const CacheService = require('./services/redis/CacheService');
+
 require('dotenv').config();
 
 const init = async () => {
+  const cacheService = new CacheService();
   const songsService = new SongsService();
   const albumsService = new AlbumsService();
   const usersService = new UsersService();
@@ -65,7 +68,7 @@ const init = async () => {
   const playlistSongsService = new PlaylistSongsService(songsService, playlistsService);
   const playlistSongActivitiesService = new PlaylistSongActivitiesService();
   const storageService = new StorageService(path.resolve(__dirname, 'api/uploads/files/images'));
-  const userAlbumLikesService = new UserAlbumLikesService();
+  const userAlbumLikesService = new UserAlbumLikesService(cacheService);
 
   const tokenManager = new TokenManager();
 

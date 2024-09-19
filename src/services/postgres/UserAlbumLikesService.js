@@ -4,8 +4,9 @@ const NotFoundError = require('../../exceptions/NotFoundError');
 const InvariantError = require('../../exceptions/InvariantError');
 
 class UserAlbumLikesService {
-  constructor() {
+  constructor(cacheService) {
     this._pool = new Pool();
+    this._cacheService = cacheService;
   }
 
   async upVoteAlbum(userId, albumId) {
@@ -22,6 +23,8 @@ class UserAlbumLikesService {
       throw new Error('Vote pada album gagal ditambahkan');
     }
 
+    await this._cacheService.delete('album:likes');
+
     return result.rows[0].id;
   }
 
@@ -37,22 +40,40 @@ class UserAlbumLikesService {
       throw new NotFoundError('Vote pada album tidak ditemukan');
     }
 
+    await this._cacheService.delete('album:likes');
+
     return result.rows[0].id;
   }
 
   async getCountVoteAlbum(albumId) {
-    const query = {
-      text: 'SELECT COUNT(*) FROM user_album_likes WHERE album_id = $1',
-      values: [albumId],
-    };
+    try {
+      const result = await this._cacheService.get('album:likes');
 
-    const result = await this._pool.query(query);
+      return {
+        isCache: true,
+        count: Number(result),
+      };
+    } catch (error) {
+      const query = {
+        text: 'SELECT COUNT(*) FROM user_album_likes WHERE album_id = $1',
+        values: [albumId],
+      };
 
-    if (!result.rows.length) {
-      throw new NotFoundError('Vote pada album tidak ditemukan');
+      const result = await this._pool.query(query);
+
+      if (!result.rows.length) {
+        throw new NotFoundError('Vote pada album tidak ditemukan');
+      }
+
+      const countVotes = result.rows[0].count;
+
+      await this._cacheService.set('album:likes', countVotes);
+
+      return {
+        isCache: false,
+        count: Number(countVotes),
+      };
     }
-
-    return Number(result.rows[0].count);
   }
 
   async verifyUserIsUpVote(userId, albumId) {

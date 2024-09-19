@@ -48,17 +48,24 @@ class ALbumVoteHandler {
 
   async getCountVoteAlbumHandler(request, h) {
     const { id: albumId } = request.params;
+    // console.log(h);
 
     const { id: albumIdExist } = await this._albumsService.getIdAlbum(albumId);
 
     const likes = await this._userAlbumLikesService.getCountVoteAlbum(albumIdExist);
 
-    return {
+    const response = h.response({
       status: 'success',
       data: {
-        likes,
+        likes: likes.count,
       },
-    };
+    });
+
+    if (likes.isCache) {
+      response.header('X-Data-Source', 'cache');
+    }
+
+    return response;
   }
 }
 
