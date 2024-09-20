@@ -23,7 +23,7 @@ class UserAlbumLikesService {
       throw new Error('Vote pada album gagal ditambahkan');
     }
 
-    await this._cacheService.delete('album:likes');
+    await this._cacheService.delete(`${albumId}:likes`);
 
     return result.rows[0].id;
   }
@@ -40,14 +40,14 @@ class UserAlbumLikesService {
       throw new NotFoundError('Vote pada album tidak ditemukan');
     }
 
-    await this._cacheService.delete('album:likes');
+    await this._cacheService.delete(`${albumId}:likes`);
 
     return result.rows[0].id;
   }
 
   async getCountVoteAlbum(albumId) {
     try {
-      const result = await this._cacheService.get('album:likes');
+      const result = await this._cacheService.get(`${albumId}:likes`);
 
       return {
         isCache: true,
@@ -67,7 +67,7 @@ class UserAlbumLikesService {
 
       const countVotes = result.rows[0].count;
 
-      await this._cacheService.set('album:likes', countVotes);
+      await this._cacheService.set(`${albumId}:likes`, countVotes);
 
       return {
         isCache: false,
